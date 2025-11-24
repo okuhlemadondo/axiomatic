@@ -44,7 +44,7 @@ const Engineering = () => {
                     className="flex flex-wrap gap-px bg-amber-900/30 border border-amber-900/30"
                     initial="hidden"
                     whileInView="visible"
-                    viewport={{ once: false, margin: "-200px" }}
+                    viewport={{ once: true, margin: "-50px" }}
                     variants={{
                         visible: {
                             transition: {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy, useRef } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Nav from './components/Nav';
@@ -20,6 +20,7 @@ const App = () => {
     const location = useLocation();
     const [showIntro, setShowIntro] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
+    const lenisRef = useRef(null);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -41,6 +42,7 @@ const App = () => {
             smoothTouch: false,
             touchMultiplier: 2,
         });
+        lenisRef.current = lenis;
 
         function raf(time) {
             lenis.raf(time);
@@ -61,6 +63,14 @@ const App = () => {
             document.body.classList.remove('no-cursor');
         }
     }, [showIntro, isMobile]);
+
+    useEffect(() => {
+        if (lenisRef.current) {
+            lenisRef.current.scrollTo(0, { immediate: true });
+        } else {
+            window.scrollTo(0, 0);
+        }
+    }, [location.pathname]);
 
     return (
         <div className="bg-cyber-black min-h-screen relative selection:bg-cyber-white selection:text-cyber-black">
