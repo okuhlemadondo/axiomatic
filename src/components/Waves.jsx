@@ -310,6 +310,7 @@ const Waves = ({
         height: '100%',
         overflow: 'hidden',
         backgroundColor,
+        touchAction: 'pan-y',
         ...style
       }}
     >

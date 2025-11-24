@@ -276,6 +276,7 @@ export default function Dither({
     return (
         <Canvas
             className="dither-container"
+            style={{ touchAction: 'pan-y' }}
             camera={{ position: [0, 0, 6] }}
             dpr={1}
             gl={{ antialias: true, preserveDrawingBuffer: true }}
