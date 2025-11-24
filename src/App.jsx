@@ -72,7 +72,7 @@ const App = () => {
                     parallaxOn={true}
                 />
             )}
-            <Noise />
+            {!isMobile && <Noise />}
             <AnimatePresence mode="wait">
                 {showIntro && <Intro onComplete={() => setShowIntro(false)} />}
             </AnimatePresence>

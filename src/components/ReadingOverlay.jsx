@@ -30,7 +30,7 @@ const ReadingOverlay = ({ post, onClose, articleIndex }) => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-8 bg-cyber-black/90 backdrop-blur-md"
+                    className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-8 bg-cyber-black/90 md:backdrop-blur-md"
                     onClick={onClose}
                 >
                     <motion.div
