@@ -1,0 +1,156 @@
+---
+title: "ROUTING AS DIFFERENTIABLE PROGRAM INDUCTION"
+category: "ENGINEERING"
+date: "2025.11.24"
+excerpt: "A DYNAMIC SWITCH THAT SELECTS THE CORRECT OPERATION."
+---
+
+The Transformer is a powerful pattern matcher, but a poor algorithmist. It struggles with tasks that are trivial for a Python script: sorting a list, counting specific tokens, or performing exact arithmetic. This is because the core operation of the Transformer—Dot-Product Attention—is fixed. No matter the task, the model attempts to solve it by averaging value vectors based on query-key similarity.
+
+We force the model to simulate algorithms using a mechanism designed for fuzzy retrieval. This is inefficient and brittle.
+
+**Routing as Differentiable Program Induction (RDPI)** proposes a paradigm shift. Instead of a fixed Attention mechanism, we provide the model with a library of **Differentiable Primitives** (Attention, Convolution, Sorting, Identity, Linear Projection). At every step, the model does not just attend to data; it **compiles a program** by routing the input state to the optimal computational primitive.
+
+---
+
+## The Problem: The "Hammer" of Attention
+
+Currently, we treat Self-Attention as a universal solvent.
+*   **Task:** "Find the noun." -> **Mechanism:** Attention.
+*   **Task:** "Sort these numbers." -> **Mechanism:** Attention.
+*   **Task:** "Copy this exact string." -> **Mechanism:** Attention.
+
+To "sort" numbers, a Transformer must learn a complex, high-dimensional attention pattern that approximates a sorting operation. This wastes parameter capacity. A dedicated "Sort" primitive would be $O(N \log N)$ or even $O(N)$ in a differentiable relaxation, whereas simulating it via attention is often $O(N^2)$ and approximate.
+
+**RDPI’s Proposition:** The layer should not be a static block of math. It should be a dynamic switch that selects the correct operation for the data distribution at hand.
+
+---
+
+## The Formalism: The Dynamic Operator
+
+Let $\mathcal{X} \in \mathbb{R}^{T \times D}$ be the input sequence.
+Let $\mathbb{P} = \{P_1, P_2, \dots, P_K\}$ be a set of **Differentiable Primitives**.
+
+Each primitive $P_k$ is a function $P_k: \mathbb{R}^{T \times D} \to \mathbb{R}^{T \times D}$.
+Examples of Primitives:
+1.  **Semantic Retrieval**: $P_{attn}(X) = \text{Softmax}(XW_Q (XW_K)^T) XW_V$
+2.  **Local Mixing**: $P_{conv}(X) = \text{Conv1D}(X)$
+3.  **No-Op (Memory)**: $P_{id}(X) = X$
+4.  **Permutation (Sort)**: $P_{sort}(X) = \text{DifferentiableSort}(X, \text{key}=f(X))$
+
+At timestep $t$, for a query vector $q_t$, RDPI computes a routing distribution $\pi$ over the primitives:
+
+$$
+\pi(q_t) = \text{Softmax}\left(\frac{q_t W_{router}}{\sqrt{d_{model}}}\right) \in \mathbb{R}^K
+$$
+
+The output $y_t$ is the weighted execution of the selected primitives:
+
+$$
+y_t = \sum_{k=1}^{K} \pi_k(q_t) \cdot P_k(X)
+$$
+
+In a **Hard Routing** limit (which we aim for via annealing or Gumbel-Softmax), $\pi$ becomes a one-hot vector. The model effectively says: *"For this token, I will run the **Convolution** primitive."*
+
+---
+
+## The Algorithm: Differentiable Instruction Set
+
+The implementation requires defining the primitives as `nn.Module` blocks and routing through them. A crucial innovation here is that different primitives have different computational complexities.
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class RDPIBlock(nn.Module):
+    def __init__(self, d_model, primitives=['attention', 'conv', 'identity']):
+        super().__init__()
+        self.d_model = d_model
+        self.primitives = nn.ModuleList()
+        self.primitive_names = primitives
+        
+        # Initialize Primitives
+        for p in primitives:
+            if p == 'attention':
+                self.primitives.append(nn.MultiheadAttention(d_model, num_heads=4))
+            elif p == 'conv':
+                # Causal Convolution for local patterns
+                self.primitives.append(nn.Sequential(
+                    nn.Conv1d(d_model, d_model, kernel_size=3, padding=1),
+                    nn.ReLU()
+                ))
+            elif p == 'identity':
+                self.primitives.append(nn.Identity())
+                
+        # The Instruction Router
+        self.router = nn.Linear(d_model, len(primitives))
+
+    def forward(self, x):
+        # x: [Seq, Batch, D]
+        seq_len, batch_size, d = x.shape
+        
+        # 1. Compute Routing Decision (The "Program")
+        # We route based on the input content at each token
+        # logits: [Seq, Batch, Num_Primitives]
+        router_logits = self.router(x) 
+        
+        # Gumbel-Softmax allows differentiable discrete selection
+        # During training, this is soft; during inference, it's hard selection.
+        if self.training:
+            weights = F.gumbel_softmax(router_logits, tau=1.0, hard=False, dim=-1)
+        else:
+            weights = F.softmax(router_logits, dim=-1) # Or argmax
+            
+        # 2. Execute Primitives
+        outputs = []
+        for i, primitive in enumerate(self.primitives):
+            if self.primitive_names[i] == 'attention':
+                # Attention needs Q,K,V (here self-attention)
+                out, _ = primitive(x, x, x)
+                outputs.append(out)
+            elif self.primitive_names[i] == 'conv':
+                # Conv expects [Batch, D, Seq]
+                out = primitive(x.permute(1, 2, 0)).permute(2, 0, 1)
+                outputs.append(out)
+            else:
+                outputs.append(primitive(x))
+                
+        # Stack: [Seq, Batch, Num_Prims, D]
+        stacked_outputs = torch.stack(outputs, dim=2)
+        
+        # 3. Aggregate results based on weights
+        # weights: [Seq, Batch, Num_Prims, 1]
+        weights = weights.unsqueeze(-1)
+        
+        # Weighted Sum (Differentiable Execution)
+        final_output = (stacked_outputs * weights).sum(dim=2)
+        
+        return final_output, weights
+```
+
+### Why This Is Promising (IMO)
+
+1.  **Inductive Bias**: We are currently hoping Transformers "discover" convolution and sorting from scratch. RDPI gives them the inductive bias to do so efficiently.
+2.  **Interpretability**: This is a game-changer for debugging. We can look at a trace of the model and see:
+    *   *Layer 1, Token 5:* "Used **Convolution**" (Processing local syntax).
+    *   *Layer 2, Token 5:* "Used **Attention**" (Linking to previous subject).
+    *   *Layer 3, Token 5:* "Used **Identity**" (Preserving information).
+    This looks like a stack trace, not a heat map.
+3.  **Efficiency**: If 50% of tokens only require a `Conv1D` or `Identity` operation (which are $O(N)$), and we use sparse hard-routing, we can bypass the expensive $O(N^2)$ Attention matrix for half the network.
+
+---
+
+## Challenges to Address
+
+1.  **Differentiable Primitives**: Some desired primitives (like strict sorting or stack manipulation) are non-differentiable. We must use relaxations (e.g., SoftSort) or reinforcement learning (REINFORCE) to train the router through discrete operations.
+2.  **Primitive Collapse**: The model might find that "Attention" is generally "good enough" and ignore the other primitives, collapsing back into a standard Transformer. We need **entropy regularization** on the router to force it to explore the toolset.
+3.  **Hardware Heterogeneity**: Running Convolutions and Attention in parallel branches is annoying for GPU kernels. A fused kernel that handles "Branch Divergence" efficiently will be required for production speed.
+
+---
+
+## Conclusion
+
+RDPI envisions a future where Neural Networks are not just static graphs of matrix multiplications, but **Dynamic Interpreters** that write their own execution traces on the fly. It moves us from "Artificial Intuition" (pattern matching) toward "Artificial Reasoning" (algorithmic execution).
+
+---

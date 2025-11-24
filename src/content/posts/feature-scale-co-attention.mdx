@@ -1,0 +1,152 @@
+---
+title: "FEATURE-SCALE CO-ATTENTION"
+category: "ENGINEERING"
+date: "2025.11.24"
+excerpt: "A PROPOSAL FOR DYNAMIC TEMPORAL ROUTING IN HETEROGENEOUS TIME SERIES."
+---
+
+import YouTubeEmbed from '../../components/YouTubeEmbed';
+
+In high-dimensional time series forecasting—whether we are modeling limit order books, multi-sensor telemetry in IoT, or patient vitals in an ICU—we face a persistent structural problem. Signals naturally evolve at different velocities. A price crash might happen in seconds (microstructure), while a volume trend builds over hours (liquidity), and a sentiment shift plays out over days (macro).
+
+Current State-of-the-Art (SOTA) models, particularly Transformer variants like Informer or Autoformer, tend to force all features through a single temporal lens. They tokenize time steps uniformly. While some recent architectures introduce "patches" or hierarchical pooling, they apply these scales globally across all features. This blurs the signal: to capture the high-frequency noise of Feature A, we are forced to over-sample the low-frequency trend of Feature B.
+
+I have been working on a formalism to solve this called **Feature-Scale Co-Attention (FSCA)**. It is a mechanism designed to decouple the temporal resolution of individual features, using a two-stage routing attention mechanism to dynamically "zoom" in or out on specific signals depending on the context of the query.
+
+What follows is the motivation, the mathematical formalism, and the anticipated algorithmic implementation.
+
+### The Motivation: The "Blurring" Problem
+
+Standard self-attention mechanisms operate on a matrix $X \in \mathbb{R}^{T \times F}$, where $T$ is time and $F$ is features. Even in "patch-based" approaches, the patch size $P$ is a hyperparameter fixed for the whole model.
+
+If you are interested in how traditional Transformers handle this (and where they fail in multi-scale contexts), this deep dive into the Time Series Transformer landscape is essential context:
+
+<YouTubeEmbed id="LNydD9ZemZ8" title="Time Series Transformers Explained" />
+
+FSCA proposes that we treat the "scale" of a feature not as a hyperparameter, but as a learnable, context-dependent latent variable. The model should be able to decide, at step $t$, that it needs to look at the last 5 minutes of *Price* but the last 24 hours of *Volume*.
+
+### Mathematical Formalism
+
+Let us define our input at time $t$ not as a vector, but as a collection of multi-scale representations.
+
+For each feature $f \in \{1, ..., F\}$, we pre-compute (or learn via strided convolutions) a set of $K$ scale representations $S_f = \{s_{f,1}, s_{f,2}, ..., s_{f,K}\}$.
+*   $s_{f,1}$ might be the raw input (1-step resolution).
+*   $s_{f,k}$ is a downsampled or aggregated representation (e.g., a 1-hour average).
+
+We define a **Query** vector $q_t$ (the current hidden state of the forecaster). The FSCA operation computes the context vector $c_t$ in two distinct routing stages.
+
+#### Stage 1: Intra-Feature Scale Routing (The "Zoom")
+
+First, for every feature $f$, we must determine which time-scale is most relevant to the query $q_t$. We compute an attention score $\alpha_{f,k}$ over the scales $k$.
+
+$$
+e_{f,k} = \frac{q_t W^Q_{scale} \cdot (s_{f,k} W^K_{scale})^T}{\sqrt{d_model}}
+$$
+
+$$
+\alpha_{f} = \text{softmax}([e_{f,1}, ..., e_{f,K}])
+$$
+
+We then collapse the scales into a single, dynamic representation $\hat{z}_f$ for that feature:
+
+$$
+\hat{z}_f = \sum_{k=1}^{K} \alpha_{f,k} s_{f,k}
+$$
+
+This is conceptually similar to how Mixture of Experts (MoE) routes tokens to different feed-forward networks, but here we are routing the query to different *time horizons*.
+
+<YouTubeEmbed id="sYDlVVyJYn4" title="Mixture of Experts Deep Learning Explained" />
+
+#### Stage 2: Inter-Feature Co-Attention (The "Mix")
+
+Now that we have the optimal scale representation $\hat{z}_f$ for each feature, we perform a second attention pass to determine which *features* are relevant.
+
+$$
+u_f = \frac{q_t W^Q_{feat} \cdot (\hat{z}_f W^K_{feat})^T}{\sqrt{d_model}}
+$$
+
+$$
+\beta = \text{softmax}([u_1, ..., u_F])
+$$
+
+The final context vector $c_t$ is the weighted sum of the dynamically scaled features:
+
+$$
+c_t = \sum_{f=1}^{F} \beta_f \hat{z}_f
+$$
+
+### Algorithmic Implementation Strategy
+
+While I have not yet implemented the full CUDA kernels for optimized routing, the PyTorch implementation logic is straightforward. The complexity lies in efficiently managing the memory pointers for the different scales so we don't explode VRAM.
+
+Here is how I anticipate the forward pass looking in code:
+
+```python
+class FeatureScaleCoAttention(nn.Module):
+    def __init__(self, d_model, num_features, num_scales):
+        super().__init__()
+        # Projections for Stage 1 (Scale Selection)
+        self.w_q_scale = nn.Linear(d_model, d_model)
+        self.w_k_scale = nn.Linear(d_model, d_model)
+        
+        # Projections for Stage 2 (Feature Selection)
+        self.w_q_feat = nn.Linear(d_model, d_model)
+        self.w_k_feat = nn.Linear(d_model, d_model)
+
+    def forward(self, query, multi_scale_inputs):
+        """
+        query: [Batch, d_model]
+        multi_scale_inputs: [Batch, Features, Scales, d_model]
+        """
+        B, F, S, D = multi_scale_inputs.shape
+        
+        # --- STAGE 1: Scale Routing ---
+        # Which time-resolution matters for each feature?
+        
+        # Q: [B, 1, 1, D] -> broadcast across features/scales
+        Q_s = self.w_q_scale(query).view(B, 1, 1, D) 
+        
+        # K: [B, F, S, D]
+        K_s = self.w_k_scale(multi_scale_inputs)
+        
+        # Attention scores over the 'Scales' dimension (dim=2)
+        scale_scores = torch.matmul(Q_s, K_s.transpose(-1, -2)) / (D**0.5)
+        scale_weights = torch.softmax(scale_scores, dim=2) # [B, F, S, 1]
+        
+        # Weighted sum to get "Best Scale Representation" for each feature
+        # z_hat: [B, F, D]
+        z_hat = (scale_weights * multi_scale_inputs).sum(dim=2)
+        
+        # --- STAGE 2: Feature Routing ---
+        # Which feature matters for this query?
+        
+        Q_f = self.w_q_feat(query).unsqueeze(1) # [B, 1, D]
+        K_f = self.w_k_feat(z_hat)              # [B, F, D]
+        
+        feat_scores = torch.matmul(Q_f, K_f.transpose(-1, -2)) / (D**0.5)
+        feat_weights = torch.softmax(feat_scores, dim=2) # [B, 1, F]
+        
+        # Final Context
+        context = torch.matmul(feat_weights, z_hat).squeeze(1) # [B, D]
+        
+        return context, scale_weights, feat_weights
+```
+
+### Why This Is Promising (IMO)
+
+The primary criticism of attention mechanisms in time series is their quadratic complexity and their tendency to overfit to noise. FSCA addresses both:
+
+1.  **Sparsity as a Prior:** By explicitly separating scales, we force the model to be sparse in the frequency domain. It cannot easily "smear" a high-frequency signal over a low-frequency dependency.
+2.  **Interpretability:** The weights $\alpha$ and $\beta$ provide an explicit audit trail. We can inspect the model and see, for example, that during high-volatility regimes, the model shifts its attention to the finest-grained scales of the "Price" feature, while ignoring the fine-grained scales of "Sentiment."
+
+To understand the mathematical underpinnings of why multi-scale attention is necessary for capturing long-range dependencies, this lecture on the theory of attention is highly relevant:
+
+<YouTubeEmbed id="AIiwuClvH6k" title="Attention Mechanisms and Memory in Deep Learning (DeepMind)" />
+
+### Next Steps and Open Questions
+
+The immediate challenge in building this is **causality**. When pre-computing scales (e.g., a 1-hour aggregation), we must be rigorously careful that the aggregation at time $t$ does not leak information from $t+1$. The scales must be computed using strictly causal convolutions or right-aligned rolling windows.
+
+Furthermore, I anticipate that optimizing the "Scale Routing" stage will require a custom CUDA kernel if the number of scales $S$ becomes large (>10), otherwise, the memory overhead of materializing the tensor `[Batch, Features, Scales, d_model]` will be prohibitive.
+
+I plan to begin prototyping this on the "Weather" and "Exchange Rate" datasets from the standard Informer benchmarks. If the hypothesis holds, we should see a lower MSE specifically in scenarios where the driver of the target variable shifts frequencies over time.

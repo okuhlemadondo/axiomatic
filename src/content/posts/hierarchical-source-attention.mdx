@@ -1,0 +1,160 @@
+---
+title: "HIERARCHICAL SOURCE ATTENTION"
+category: "ENGINEERING"
+date: "2025.11.24"
+excerpt: "SCALING MODULAR INTELLIGENCE VIA DYNAMIC ROUTING."
+---
+
+The trajectory of modern Large Language Models (LLMs) is currently defined by a brute-force approach to context: make the window larger. We have moved from 4k tokens to 128k, and now to 1M+. The prevailing architectural assumption is that the model should attend to *everything, everywhere, all at once*.
+
+However, this "dense attention" assumption is hitting diminishing returns. As context grows, the "lost in the middle" phenomenon worsens, and inference costs scale quadratically or linearly with heavy overhead. More importantly, biological systems do not work this way. When you answer a question about history, you do not simultaneously activate your visual cortex and your motor control neurons. You route your attention to the relevant "module" of memory.
+
+**Hierarchical Source Attention (HSA)** is a proposal to embed this modularity directly into the Transformer block. It replaces the monolithic Context Matrix with a dynamic registry of **Sources**. By introducing a lightweight routing step before attention, HSA enables models to select *where* to look before deciding *what* to read.
+
+---
+
+## The Problem: The "Context Soup"
+
+In a standard Transformer, we concatenate all inputs—system prompts, user queries, retrieved documents, tool outputs, and chat history—into a single sequence $X$. The Self-Attention mechanism computes a query $Q$ and attends to $X$ indiscriminately.
+
+This creates three structural failures:
+1.  **Noise Ratio**: Useful signals (e.g., a specific fact in a retrieved doc) are drowned out by irrelevant tokens (e.g., chat history).
+2.  **Compute Waste**: We spend FLOPs computing attention scores between the user’s current query and irrelevant system instructions from 100 turns ago.
+3.  **Mode Collapse**: The model struggles to distinguish between "internal knowledge" and "external context," leading to hallucinations.
+
+**HSA’s Proposition:** Attention should be a two-step decision process. First, select the **Source** (Router). Second, select the **Content** (Attention).
+
+---
+
+## The Formalism: Two-Stage Differentiable Selection
+
+Let us assume the model has access to $M$ distinct information sources $\mathcal{S} = \{S^{(1)}, S^{(2)}, \dots, S^{(M)}\}$.
+*   $S^{(1)}$: The local context (current conversation).
+*   $S^{(2)}$: A read-only memory bank (RAG retrieval).
+*   $S^{(3)}$: A visual encoder output.
+
+At timestep $t$, with a hidden state (query) $q_t$, HSA performs the following operations:
+
+### Stage 1: The Source Router
+We project the query $q_t$ and a "summary vector" for each source $S^{(m)}$ (e.g., its mean-pooled representation or a learned CLS token) into a routing latent space.
+
+$$
+\text{logit}_m = \frac{q_t W_Q^R \cdot (S^{(m)}_{summary} W_K^S)^\top}{\sqrt{d_{route}}}
+$$
+
+We compute the routing weights $\alpha \in \mathbb{R}^M$ via Softmax (or Top-K for sparsity):
+
+$$
+\alpha = \text{softmax}([\text{logit}_1, \dots, \text{logit}_M])
+$$
+
+We then construct a **Virtual Context** $\tilde{C}_t$. In a dense variant, this is a weighted sum. In a sparse variant (which we target for production), we slice only the top-$k$ sources:
+
+$$
+\tilde{C}_t = \text{Concat}(\text{Top}_k(\alpha, \mathcal{S}))
+$$
+
+### Stage 2: The Content Attention
+Now, standard Multi-Head Attention is applied, but *only* on the filtered Virtual Context $\tilde{C}_t$, not the global context.
+
+$$
+y_t = \text{Attention}(Q=q_t, K=\tilde{C}_t, V=\tilde{C}_t)
+$$
+
+This reduces the complexity from $O(T_{total}^2)$ to $O(T_{source}^2)$, where $T_{source} \ll T_{total}$.
+
+---
+
+## Implementation Strategy & Algorithm
+
+To make this efficient, we cannot physically move data around in GPU memory at every step. The implementation requires **Block-Sparse Kernels** (similar to those used in Triton or specialized MoE implementations).
+
+Here is the PyTorch-style logic for the forward pass:
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class HierarchicalSourceAttention(nn.Module):
+    def __init__(self, d_model, num_heads, num_sources, top_k=2):
+        super().__init__()
+        self.d_model = d_model
+        self.top_k = top_k
+        
+        # 1. Routing Projections
+        # We assume each source has a 'signature' vector of size d_model
+        self.w_router_q = nn.Linear(d_model, d_model)
+        self.w_router_k = nn.Linear(d_model, d_model)
+        
+        # 2. Standard Attention
+        self.attention = nn.MultiheadAttention(d_model, num_heads)
+
+    def forward(self, query, source_banks, source_signatures):
+        """
+        query: [Batch, 1, d_model] - Current token
+        source_banks: List of M tensors, each [Batch, Seq_Len_m, d_model]
+        source_signatures: [Batch, M, d_model] - Summary vector for each source
+        """
+        B = query.size(0)
+        
+        # --- STAGE 1: ROUTING ---
+        
+        # Project Query and Signatures
+        # r_q: [B, 1, D]
+        r_q = self.w_router_q(query) 
+        # r_k: [B, M, D]
+        r_k = self.w_router_k(source_signatures) 
+        
+        # Calculate Routing Logits
+        # logits: [B, 1, M]
+        logits = torch.matmul(r_q, r_k.transpose(-1, -2))
+        
+        # Select Top-K Sources
+        # indices: [B, 1, k]
+        weights, indices = torch.topk(logits, k=self.top_k, dim=-1)
+        weights = F.softmax(weights, dim=-1)
+        
+        # --- STAGE 2: GATHER & ATTEND ---
+        
+        # In a real kernel, we wouldn't cat; we'd read indices directly.
+        # For python prototyping, we gather the selected banks.
+        
+        selected_keys = []
+        selected_values = []
+        
+        # NOTE: This loop is the bottleneck in Python; 
+        # needs custom CUDA kernel for gathering jagged tensors.
+        for b in range(B):
+            batch_k = []
+            for idx in indices[b, 0]:
+                batch_k.append(source_banks[idx.item()][b])
+            selected_keys.append(torch.cat(batch_k, dim=0))
+            
+        # Stack implies equal length for simplicity here, 
+        # normally requires padding or nested tensors.
+        virtual_context = torch.stack(selected_keys) # [B, K*Seq_Len, D]
+        
+        # --- STAGE 3: ATTENTION ---
+        
+        attn_out, _ = self.attention(query, virtual_context, virtual_context)
+        
+        return attn_out, indices
+```
+
+### Challenges to Address
+
+1.  **The Cold Start Problem**: At the beginning of training, the router is random. If it never selects a specific source (e.g., the "Vision Encoder"), that source receives no gradients and never learns. We will need **load balancing auxiliary losses**, similar to Switch Transformers, to ensure all sources are sampled adequately.
+2.  **Jagged Tensors**: Different sources have different sequence lengths. A "Tool Output" might be 50 tokens; a "Long-Term Memory" chunk might be 512. Batching this efficiently requires heavy use of `torch.nested` or FlashAttention with variable sequence length support.
+3.  **Source Signature Learning**: How do we represent a source before we attend to it? A learnable `[CLS]` token for each source bank is the most likely candidate, updated via backpropagation through the router.
+
+---
+
+## Why This Matters
+
+HSA represents a shift from **Passive Context** to **Active Inquiry**.
+
+In current architectures, the model is a passive recipient of a massive context window. In an HSA architecture, the model becomes an active agent that *queries* its environment. It asks: "Do I need visual information now?" or "Do I need to check the encyclopedia?"
+
+If successful, this allows us to decouple "Total Knowledge" from "Inference Cost." We could theoretically have a model with access to 100GB of source banks, but because it only routes to the top-2 relevant banks per token, the inference latency remains as fast as a small 7B model. This is the path toward **Infinite Memory** without infinite compute.
+
