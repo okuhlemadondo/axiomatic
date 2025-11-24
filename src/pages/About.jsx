@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
 import { motion } from 'framer-motion';
@@ -88,33 +89,36 @@ const About = () => {
                                 </div>
 
                                 {/* Humorous Tooltip */}
-                                <div className={`
-                                    fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] z-[60]
-                                    md:absolute md:top-auto md:bottom-full md:left-0 md:translate-x-0 md:translate-y-0 md:w-72 md:z-50
-                                    bg-cyber-black/95 border border-cyber-border p-5 shadow-[0_0_30px_-10px_rgba(239,68,68,0.2)]
-                                    backdrop-blur-sm border-l-4 border-l-red-500
-                                    transition-all duration-300
-                                    ${activeTooltip === 'age' ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95 md:invisible md:group-hover:visible md:group-hover:opacity-100 md:group-hover:translate-y-0 md:translate-y-2'}
-                                `}>
-                                    <div className="font-mono text-[10px] text-red-500/70 mb-3 tracking-widest uppercase border-b border-cyber-border/30 pb-2">
-                                        // CLARIFICATION
-                                    </div>
-                                    <div className="font-mono text-xs text-cyber-text leading-relaxed">
-                                        like...the number after {(() => {
-                                            const birthDate = new Date('2003-03-14');
-                                            const today = new Date();
-                                            let age = today.getFullYear() - birthDate.getFullYear();
-                                            const m = today.getMonth() - birthDate.getMonth();
-                                            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                                                age--;
-                                            }
-                                            return age - 1;
-                                        })()}
-                                    </div>
-                                </div>
-                                {/* Mobile Backdrop */}
-                                {activeTooltip === 'age' && (
-                                    <div className="md:hidden fixed inset-0 bg-black/60 z-[55]" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />
+                                {activeTooltip === 'age' && createPortal(
+                                    <>
+                                        <div className={`
+                                            fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] z-[9999]
+                                            md:absolute md:top-auto md:bottom-full md:left-0 md:translate-x-0 md:translate-y-0 md:w-72 md:z-50
+                                            bg-cyber-black/95 border border-cyber-border p-5 shadow-[0_0_30px_-10px_rgba(239,68,68,0.2)]
+                                            backdrop-blur-sm border-l-4 border-l-red-500
+                                            transition-all duration-300
+                                            opacity-100 visible scale-100
+                                        `}>
+                                            <div className="font-mono text-[10px] text-red-500/70 mb-3 tracking-widest uppercase border-b border-cyber-border/30 pb-2">
+                                                // CLARIFICATION
+                                            </div>
+                                            <div className="font-mono text-xs text-cyber-text leading-relaxed">
+                                                like...the number after {(() => {
+                                                    const birthDate = new Date('2003-03-14');
+                                                    const today = new Date();
+                                                    let age = today.getFullYear() - birthDate.getFullYear();
+                                                    const m = today.getMonth() - birthDate.getMonth();
+                                                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                                                        age--;
+                                                    }
+                                                    return age - 1;
+                                                })()}
+                                            </div>
+                                        </div>
+                                        {/* Mobile Backdrop */}
+                                        <div className="fixed inset-0 bg-black/60 z-[9990]" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />
+                                    </>,
+                                    document.body
                                 )}
                             </div>
 
@@ -126,24 +130,27 @@ const About = () => {
                                 <div className="text-base md:text-xl font-mono text-cyber-white border-b border-dashed border-cyber-text/30 inline-block hover:text-red-500 hover:border-red-500 transition-colors">Computational Scientist</div>
 
                                 {/* Definition Tooltip */}
-                                <div className={`
-                                    fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] z-[60]
-                                    md:absolute md:top-auto md:bottom-full md:right-0 md:left-auto md:translate-x-0 md:translate-y-0 md:w-72 md:z-50
-                                    bg-cyber-black/95 border border-cyber-border p-5 shadow-[0_0_30px_-10px_rgba(239,68,68,0.2)]
-                                    backdrop-blur-sm border-l-4 border-l-red-500
-                                    transition-all duration-300
-                                    ${activeTooltip === 'class' ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95 md:invisible md:group-hover:visible md:group-hover:opacity-100 md:group-hover:translate-y-0 md:translate-y-2'}
-                                `}>
-                                    <div className="font-mono text-[10px] text-red-500/70 mb-3 tracking-widest uppercase border-b border-cyber-border/30 pb-2">
-                                        // DEFINITION
-                                    </div>
-                                    <div className="font-mono text-xs text-cyber-text leading-relaxed">
-                                        A scientist who uses advanced computing capabilities to understand and solve complex physical problems.
-                                    </div>
-                                </div>
-                                {/* Mobile Backdrop */}
-                                {activeTooltip === 'class' && (
-                                    <div className="md:hidden fixed inset-0 bg-black/60 z-[55]" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />
+                                {activeTooltip === 'class' && createPortal(
+                                    <>
+                                        <div className={`
+                                            fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] z-[9999]
+                                            md:absolute md:top-auto md:bottom-full md:right-0 md:left-auto md:translate-x-0 md:translate-y-0 md:w-72 md:z-50
+                                            bg-cyber-black/95 border border-cyber-border p-5 shadow-[0_0_30px_-10px_rgba(239,68,68,0.2)]
+                                            backdrop-blur-sm border-l-4 border-l-red-500
+                                            transition-all duration-300
+                                            opacity-100 visible scale-100
+                                        `}>
+                                            <div className="font-mono text-[10px] text-red-500/70 mb-3 tracking-widest uppercase border-b border-cyber-border/30 pb-2">
+                                                // DEFINITION
+                                            </div>
+                                            <div className="font-mono text-xs text-cyber-text leading-relaxed">
+                                                A scientist who uses advanced computing capabilities to understand and solve complex physical problems.
+                                            </div>
+                                        </div>
+                                        {/* Mobile Backdrop */}
+                                        <div className="fixed inset-0 bg-black/60 z-[9990]" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />
+                                    </>,
+                                    document.body
                                 )}
                             </div>
 
@@ -155,30 +162,33 @@ const About = () => {
                                 <div className="text-base md:text-xl font-mono text-cyber-white border-b border-dashed border-cyber-text/30 inline-block hover:text-red-500 hover:border-red-500 transition-colors">Homo Sapiens</div>
 
                                 {/* Biological Classification Tooltip */}
-                                <div className={`
-                                    fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] z-[60]
-                                    md:absolute md:top-auto md:bottom-full md:left-0 md:translate-x-0 md:translate-y-0 md:w-72 md:z-50
-                                    bg-cyber-black/95 border border-cyber-border p-5 shadow-[0_0_30px_-10px_rgba(239,68,68,0.2)]
-                                    backdrop-blur-sm border-l-4 border-l-red-500
-                                    transition-all duration-300
-                                    ${activeTooltip === 'species' ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95 md:invisible md:group-hover:visible md:group-hover:opacity-100 md:group-hover:translate-y-0 md:translate-y-2'}
-                                `}>
-                                    <div className="font-mono text-[10px] text-red-500/70 mb-3 tracking-widest uppercase border-b border-cyber-border/30 pb-2">
-                                        // TAXONOMY_DATA
-                                    </div>
-                                    <div className="font-mono text-xs text-cyber-text space-y-2">
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Domain:</span> <span className="text-cyber-white">Eukaryote</span></div>
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Kingdom:</span> <span className="text-cyber-white">Animalia</span></div>
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Phylum:</span> <span className="text-cyber-white">Chordata</span></div>
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Class:</span> <span className="text-cyber-white">Mammalia</span></div>
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Order:</span> <span className="text-cyber-white">Primate</span></div>
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Family:</span> <span className="text-cyber-white">Hominid</span></div>
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Genus:</span> <span className="text-cyber-white">Homo</span></div>
-                                    </div>
-                                </div>
-                                {/* Mobile Backdrop */}
-                                {activeTooltip === 'species' && (
-                                    <div className="md:hidden fixed inset-0 bg-black/60 z-[55]" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />
+                                {activeTooltip === 'species' && createPortal(
+                                    <>
+                                        <div className={`
+                                            fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] z-[9999]
+                                            md:absolute md:top-auto md:bottom-full md:left-0 md:translate-x-0 md:translate-y-0 md:w-72 md:z-50
+                                            bg-cyber-black/95 border border-cyber-border p-5 shadow-[0_0_30px_-10px_rgba(239,68,68,0.2)]
+                                            backdrop-blur-sm border-l-4 border-l-red-500
+                                            transition-all duration-300
+                                            opacity-100 visible scale-100
+                                        `}>
+                                            <div className="font-mono text-[10px] text-red-500/70 mb-3 tracking-widest uppercase border-b border-cyber-border/30 pb-2">
+                                                // TAXONOMY_DATA
+                                            </div>
+                                            <div className="font-mono text-xs text-cyber-text space-y-2">
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Domain:</span> <span className="text-cyber-white">Eukaryote</span></div>
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Kingdom:</span> <span className="text-cyber-white">Animalia</span></div>
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Phylum:</span> <span className="text-cyber-white">Chordata</span></div>
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Class:</span> <span className="text-cyber-white">Mammalia</span></div>
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Order:</span> <span className="text-cyber-white">Primate</span></div>
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Family:</span> <span className="text-cyber-white">Hominid</span></div>
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Genus:</span> <span className="text-cyber-white">Homo</span></div>
+                                            </div>
+                                        </div>
+                                        {/* Mobile Backdrop */}
+                                        <div className="fixed inset-0 bg-black/60 z-[9990]" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />
+                                    </>,
+                                    document.body
                                 )}
                             </div>
 
@@ -190,29 +200,32 @@ const About = () => {
                                 <div className="text-base md:text-xl font-mono text-cyber-white border-b border-dashed border-cyber-text/30 inline-block hover:text-red-500 hover:border-red-500 transition-colors">South Africa</div>
 
                                 {/* Cosmic Address Tooltip */}
-                                <div className={`
-                                    fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] z-[60]
-                                    md:absolute md:top-auto md:bottom-full md:right-0 md:left-auto md:translate-x-0 md:translate-y-0 md:w-72 md:z-50
-                                    bg-cyber-black/95 border border-cyber-border p-5 shadow-[0_0_30px_-10px_rgba(239,68,68,0.2)]
-                                    backdrop-blur-sm border-l-4 border-l-red-500
-                                    transition-all duration-300
-                                    ${activeTooltip === 'origin' ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95 md:invisible md:group-hover:visible md:group-hover:opacity-100 md:group-hover:translate-y-0 md:translate-y-2'}
-                                `}>
-                                    <div className="font-mono text-[10px] text-red-500/70 mb-3 tracking-widest uppercase border-b border-cyber-border/30 pb-2">
-                                        // COSMIC_ADDRESS
-                                    </div>
-                                    <div className="font-mono text-xs text-cyber-text space-y-2">
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Planet:</span> <span className="text-cyber-white">Earth</span></div>
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Sun:</span> <span className="text-cyber-white">Sol</span></div>
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Spiral Arm:</span> <span className="text-cyber-white">Orion</span></div>
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Galaxy:</span> <span className="text-cyber-white">Milky Way</span></div>
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Group:</span> <span className="text-cyber-white">Local Group</span></div>
-                                        <div className="flex justify-between"><span className="text-cyber-text/50">Cluster:</span> <span className="text-cyber-white">Virgo</span></div>
-                                    </div>
-                                </div>
-                                {/* Mobile Backdrop */}
-                                {activeTooltip === 'origin' && (
-                                    <div className="md:hidden fixed inset-0 bg-black/60 z-[55]" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />
+                                {activeTooltip === 'origin' && createPortal(
+                                    <>
+                                        <div className={`
+                                            fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] z-[9999]
+                                            md:absolute md:top-auto md:bottom-full md:right-0 md:left-auto md:translate-x-0 md:translate-y-0 md:w-72 md:z-50
+                                            bg-cyber-black/95 border border-cyber-border p-5 shadow-[0_0_30px_-10px_rgba(239,68,68,0.2)]
+                                            backdrop-blur-sm border-l-4 border-l-red-500
+                                            transition-all duration-300
+                                            opacity-100 visible scale-100
+                                        `}>
+                                            <div className="font-mono text-[10px] text-red-500/70 mb-3 tracking-widest uppercase border-b border-cyber-border/30 pb-2">
+                                                // COSMIC_ADDRESS
+                                            </div>
+                                            <div className="font-mono text-xs text-cyber-text space-y-2">
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Planet:</span> <span className="text-cyber-white">Earth</span></div>
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Sun:</span> <span className="text-cyber-white">Sol</span></div>
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Spiral Arm:</span> <span className="text-cyber-white">Orion</span></div>
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Galaxy:</span> <span className="text-cyber-white">Milky Way</span></div>
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Group:</span> <span className="text-cyber-white">Local Group</span></div>
+                                                <div className="flex justify-between"><span className="text-cyber-text/50">Cluster:</span> <span className="text-cyber-white">Virgo</span></div>
+                                            </div>
+                                        </div>
+                                        {/* Mobile Backdrop */}
+                                        <div className="fixed inset-0 bg-black/60 z-[9990]" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />
+                                    </>,
+                                    document.body
                                 )}
                             </div>
                         </div>
