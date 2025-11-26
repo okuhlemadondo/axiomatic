@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
@@ -9,6 +9,31 @@ import TextType from '../components/TextType';
 
 const About = () => {
     const [activeTooltip, setActiveTooltip] = useState(null);
+    const [avatarScale, setAvatarScale] = useState({ mobile: 1.1, desktop: 0.7 });
+
+    useEffect(() => {
+        const handleResize = () => {
+            const width = window.innerWidth;
+            let mobile = 1.1;
+            let desktop = 0.7;
+
+            // Mobile/Tablet Portrait
+            if (width >= 500 && width < 768) {
+                mobile = 0.6; // Halved for tablet portrait
+            }
+
+            // Tablet Landscape / Small Laptop
+            if (width >= 768 && width < 1280) {
+                desktop = 0.4; // Halved for tablet landscape
+            }
+
+            setAvatarScale({ mobile, desktop });
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     return (
         <div className="h-screen bg-cyber-black text-cyber-text flex flex-col md:flex-row overflow-hidden pt-20">
@@ -20,7 +45,7 @@ const About = () => {
                     <ambientLight intensity={0.6} />
                     <spotLight position={[5, 5, 5]} angle={0.25} penumbra={1} intensity={1.5} />
                     <pointLight position={[-5, -5, -5]} intensity={0.5} />
-                    <Avatar position={[0, 0.2, 0]} scale={1.1} />
+                    <Avatar position={[0, 0.2, 0]} scale={avatarScale.mobile} />
                     <OrbitControls enableZoom={false} enablePan={false} minPolarAngle={Math.PI / 2.2} maxPolarAngle={Math.PI / 1.8} />
                     <Environment preset="city" />
                 </Canvas>
@@ -33,7 +58,7 @@ const About = () => {
                     <ambientLight intensity={0.6} />
                     <spotLight position={[5, 5, 5]} angle={0.25} penumbra={1} intensity={1.5} />
                     <pointLight position={[-5, -5, -5]} intensity={0.5} />
-                    <Avatar position={[0, 0, 0]} scale={0.7} />
+                    <Avatar position={[0, 0, 0]} scale={avatarScale.desktop} />
                     <OrbitControls enableZoom={false} enablePan={false} minPolarAngle={Math.PI / 2.2} maxPolarAngle={Math.PI / 1.8} />
                     <Environment preset="city" />
                 </Canvas>

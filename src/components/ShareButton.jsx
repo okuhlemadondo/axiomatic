@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Share2, Link2, Twitter, Linkedin, Facebook, Mail, MessageCircle, Check } from 'lucide-react';
+import { Share2, Link2, Twitter, Linkedin, Facebook, Mail, MessageCircle, Check, Instagram } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ShareButton = ({ url, title, description }) => {
@@ -68,6 +68,41 @@ const ShareButton = ({ url, title, description }) => {
                     'noopener,noreferrer'
                 );
                 setIsOpen(false);
+            },
+            color: 'text-cyber-white'
+        },
+        {
+            name: 'Instagram',
+            icon: Instagram,
+            onClick: async () => {
+                // Instagram doesn't support direct URL sharing, so just copy the link
+                try {
+                    await navigator.clipboard.writeText(url);
+                    setCopied(true);
+                    setTimeout(() => {
+                        setCopied(false);
+                        setIsOpen(false);
+                    }, 2000);
+                } catch (err) {
+                    // Fallback for browsers that don't support clipboard API
+                    const textArea = document.createElement('textarea');
+                    textArea.value = url;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        setCopied(true);
+                        setTimeout(() => {
+                            setCopied(false);
+                            setIsOpen(false);
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy:', err);
+                    }
+                    document.body.removeChild(textArea);
+                }
             },
             color: 'text-cyber-white'
         },

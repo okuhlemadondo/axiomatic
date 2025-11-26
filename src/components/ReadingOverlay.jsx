@@ -1,14 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Terminal } from 'lucide-react';
+import { X, Calendar, Clock, User, Layers, Terminal } from 'lucide-react';
+import { MDXProvider } from '@mdx-js/react';
 import DecryptedText from './DecryptedText';
 import StaggeredText from './StaggeredText';
 import ShareButton from './ShareButton';
+import CodeBlock from './CodeBlock';
 
 const ReadingOverlay = ({ post, onClose, articleIndex }) => {
     const [contentVisible, setContentVisible] = useState(false);
+    const contentRef = useRef(null);
+
+    // MDX components with CodeBlock for code blocks
+    const components = {
+        pre: CodeBlock,
+    };
 
     useEffect(() => {
         if (post) {
@@ -82,7 +90,7 @@ const ReadingOverlay = ({ post, onClose, articleIndex }) => {
                                     <div className="md:hidden flex flex-col gap-1 items-end text-[9px]">
                                         <div className="whitespace-nowrap">
                                             <DecryptedText
-                                                text={`CAT: ${post.category}`}
+                                                text={`CAT: ${post.category} `}
                                                 animateOn="view"
                                                 speed={50}
                                                 sequential={true}
@@ -91,7 +99,7 @@ const ReadingOverlay = ({ post, onClose, articleIndex }) => {
                                         </div>
                                         <div className="whitespace-nowrap">
                                             <DecryptedText
-                                                text={`DATE: ${post.date}`}
+                                                text={`DATE: ${post.date} `}
                                                 animateOn="view"
                                                 speed={50}
                                                 sequential={true}
@@ -101,7 +109,7 @@ const ReadingOverlay = ({ post, onClose, articleIndex }) => {
                                         </div>
                                         <div className="whitespace-nowrap">
                                             <DecryptedText
-                                                text={`TIME: ${post.readTime}`}
+                                                text={`TIME: ${post.readTime} `}
                                                 animateOn="view"
                                                 speed={50}
                                                 sequential={true}
@@ -118,30 +126,32 @@ const ReadingOverlay = ({ post, onClose, articleIndex }) => {
                                             sequential={true}
                                             className="inline-block"
                                         />
-                                    </div>
-                                </div>
-                            </div>
+                                    </div >
+                                </div >
+                            </div >
 
-                            {post.audioTrack && (
-                                <div className="mb-12 p-4 border border-cyber-border bg-cyber-dark/50 flex items-center gap-4">
-                                    <button className="w-10 h-10 flex items-center justify-center rounded-full border border-cyber-white text-cyber-white hover:bg-cyber-white hover:text-cyber-black transition-all">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                                    </button>
-                                    <div className="flex-1">
-                                        <div className="text-xs font-mono text-cyber-text mb-1">AUDIO_TRACK // {post.title}</div>
-                                        <div className="h-1 w-full bg-cyber-black border border-cyber-border relative">
-                                            <div className="absolute top-0 left-0 h-full w-1/3 bg-cyber-white/50"></div>
+                            {
+                                post.audioTrack && (
+                                    <div className="mb-12 p-4 border border-cyber-border bg-cyber-dark/50 flex items-center gap-4">
+                                        <button className="w-10 h-10 flex items-center justify-center rounded-full border border-cyber-white text-cyber-white hover:bg-cyber-white hover:text-cyber-black transition-all">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                        </button>
+                                        <div className="flex-1">
+                                            <div className="text-xs font-mono text-cyber-text mb-1">AUDIO_TRACK // {post.title}</div>
+                                            <div className="h-1 w-full bg-cyber-black border border-cyber-border relative">
+                                                <div className="absolute top-0 left-0 h-full w-1/3 bg-cyber-white/50"></div>
+                                            </div>
                                         </div>
+                                        <div className="font-mono text-xs text-cyber-white">00:00 / 12:45</div>
                                     </div>
-                                    <div className="font-mono text-xs text-cyber-white">00:00 / 12:45</div>
-                                </div>
-                            )}
+                                )
+                            }
 
-                            <h2 className="text-4xl md:text-6xl font-bold mb-8 leading-none tracking-tighter uppercase min-h-[1.2em] break-words hyphens-auto">
+                            < h2 className="text-4xl md:text-6xl font-bold mb-8 leading-none tracking-tighter uppercase min-h-[1.2em] break-words hyphens-auto" >
                                 <StaggeredText start={true} delay={0.2}>
                                     {formattedTitle}
                                 </StaggeredText>
-                            </h2>
+                            </h2 >
 
 
 
@@ -151,14 +161,16 @@ const ReadingOverlay = ({ post, onClose, articleIndex }) => {
                                 transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                                 className="prose prose-invert prose-base md:prose-lg max-w-none font-sans text-cyber-text"
                             >
-                                {post.component ? <post.component /> : (
-                                    <>
-                                        <p className="lead text-xl text-cyber-white mb-8 font-mono border-l-4 border-cyber-white pl-6">{post.excerpt}</p>
-                                        <p>{post.content}</p>
-                                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-                                        <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                                    </>
-                                )}
+                                <MDXProvider components={components}>
+                                    {post.component ? <post.component /> : (
+                                        <>
+                                            <p className="lead text-xl text-cyber-white mb-8 font-mono border-l-4 border-cyber-white pl-6">{post.excerpt}</p>
+                                            <p>{post.content}</p>
+                                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                                            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                                        </>
+                                    )}
+                                </MDXProvider>
                             </motion.div>
 
                             <motion.div
@@ -176,11 +188,11 @@ const ReadingOverlay = ({ post, onClose, articleIndex }) => {
                                 </div>
                                 <Terminal className="w-5 h-5 text-cyber-text" />
                             </motion.div>
-                        </div>
-                    </motion.div>
-                </motion.div>
+                        </div >
+                    </motion.div >
+                </motion.div >
             )}
-        </AnimatePresence>,
+        </AnimatePresence >,
         document.body
     );
 };

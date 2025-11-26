@@ -16,9 +16,9 @@ const Noise = () => {
                         <feFuncA type="table" tableValues="0 0.5 0" />
                     </feComponentTransfer>
                 </filter>
-                <rect width="100%" height="100%" filter="url(#noiseFilter)" />
+                <rect width="100%" height="100%" filter="url(#noiseFilter)" className="noise-rect" />
             </svg>
-            <style jsx>{`
+            <style>{`
                 @keyframes noise-animation {
                     0% { transform: translate(0, 0); }
                     10% { transform: translate(-5%, -5%); }
@@ -32,7 +32,7 @@ const Noise = () => {
                     90% { transform: translate(10%, 5%); }
                     100% { transform: translate(5%, 0); }
                 }
-                rect {
+                .noise-rect {
                     animation: noise-animation 2s steps(10) infinite;
                 }
             `}</style>
