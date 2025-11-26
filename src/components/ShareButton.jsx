@@ -142,7 +142,7 @@ const ShareButton = ({ url, title, description }) => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute bottom-full mb-2 left-0 lg:left-auto lg:right-0 w-56 bg-cyber-black/95 backdrop-blur-xl border border-cyber-border shadow-2xl shadow-cyber-white/10 z-50"
+                        className="absolute bottom-full mb-2 left-0 w-56 bg-cyber-black/95 backdrop-blur-xl border border-cyber-border shadow-2xl shadow-cyber-white/10 z-50"
                     >
                         <div className="p-2 space-y-1">
                             {shareOptions.map((option, index) => (
@@ -163,7 +163,7 @@ const ShareButton = ({ url, title, description }) => {
                         </div>
 
                         {/* Arrow pointer */}
-                        <div className="absolute -bottom-2 left-6 lg:left-auto lg:right-6 w-4 h-4 bg-cyber-black/95 border-r border-b border-cyber-border transform rotate-45" />
+                        <div className="absolute -bottom-2 left-6 w-4 h-4 bg-cyber-black/95 border-r border-b border-cyber-border transform rotate-45" />
                     </motion.div>
                 )}
             </AnimatePresence>
