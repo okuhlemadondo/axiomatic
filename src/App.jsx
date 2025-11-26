@@ -13,6 +13,7 @@ const Home = lazy(() => import('./pages/Home'));
 const Science = lazy(() => import('./pages/Science'));
 const Engineering = lazy(() => import('./pages/Engineering'));
 const Philosophy = lazy(() => import('./pages/Philosophy'));
+const Axiomatic = lazy(() => import('./pages/Axiomatic'));
 const About = lazy(() => import('./pages/About'));
 const Personal = lazy(() => import('./pages/Personal'));
 
@@ -94,9 +95,14 @@ const App = () => {
                         <Suspense fallback={<div className="h-screen w-full bg-cyber-black flex items-center justify-center text-cyber-text font-mono text-xs">LOADING_MODULES...</div>}>
                             <Routes location={location} key={location.pathname}>
                                 <Route path="/" element={<Home startAnimation={!showIntro} />} />
+                                <Route path="/axiomatic" element={<Axiomatic />} />
+                                <Route path="/axiomatic/:slug" element={<Axiomatic />} />
                                 <Route path="/science" element={<Science />} />
+                                <Route path="/science/:slug" element={<Science />} />
                                 <Route path="/engineering" element={<Engineering />} />
+                                <Route path="/engineering/:slug" element={<Engineering />} />
                                 <Route path="/philosophy" element={<Philosophy />} />
+                                <Route path="/philosophy/:slug" element={<Philosophy />} />
                                 <Route path="/about" element={<About />} />
                                 <Route path="/personal" element={<Personal />} />
                             </Routes>

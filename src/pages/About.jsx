@@ -45,7 +45,7 @@ const About = () => {
             </div>
 
             {/* Right Side: Stats & Bio (Bottom on Mobile, Right on Desktop) */}
-            <div className="w-full md:w-1/2 h-[65vh] md:h-full p-4 md:p-12 flex flex-col justify-start md:justify-center relative overflow-y-auto z-10 bg-cyber-black md:bg-transparent backdrop-blur-none">
+            <div className="w-full md:w-1/2 h-[65vh] md:h-full p-4 md:p-8 lg:p-12 flex flex-col justify-start md:justify-center relative overflow-y-auto z-10 bg-cyber-black md:bg-transparent backdrop-blur-none">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyber-border to-transparent opacity-50" />
 
                 <motion.div
@@ -58,7 +58,7 @@ const About = () => {
                         // IDENTITY_VERIFIED
                     </div>
 
-                    <h1 className="text-3xl md:text-5xl font-display font-bold text-cyber-white mb-4 md:mb-6 tracking-tighter text-center md:text-left">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-cyber-white mb-4 md:mb-6 tracking-tighter text-center md:text-left">
                         <DecryptedText
                             text="OKUHLE MADONDO"
                             animateOn="view"
@@ -127,7 +127,7 @@ const About = () => {
                                 onClick={() => setActiveTooltip(activeTooltip === 'class' ? null : 'class')}
                             >
                                 <div className="font-mono text-[10px] md:text-xs text-red-500 mb-1">CLASS</div>
-                                <div className="text-base md:text-xl font-mono text-cyber-white border-b border-dashed border-cyber-text/30 inline-block hover:text-red-500 hover:border-red-500 transition-colors">Computational Scientist</div>
+                                <div className="text-base md:text-lg lg:text-xl font-mono text-cyber-white border-b border-dashed border-cyber-text/30 inline-block hover:text-red-500 hover:border-red-500 transition-colors">Computational Scientist</div>
 
                                 {/* Definition Tooltip */}
                                 {activeTooltip === 'class' && createPortal(

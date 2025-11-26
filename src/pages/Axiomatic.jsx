@@ -7,11 +7,11 @@ import ReadingOverlay from '../components/ReadingOverlay';
 import SectionHeader from '../components/SectionHeader';
 import { POSTS } from '../data/posts';
 
-const Engineering = () => {
+const Axiomatic = () => {
     const [searchParams] = useSearchParams();
     const { slug } = useParams();
     const navigate = useNavigate();
-    const posts = POSTS.filter(p => p.category === 'ENGINEERING');
+    const posts = POSTS.filter(p => p.category === 'AXIOMATIC');
 
     const selectedPost = useMemo(() => {
         // First check for slug in URL params
@@ -25,32 +25,31 @@ const Engineering = () => {
 
     const handleClose = () => {
         // Navigate back to the category page
-        navigate('/engineering');
+        navigate('/axiomatic');
     };
 
     const handlePostClick = (post) => {
         // Navigate to the post's URL using slug
-        navigate(`/engineering/${post.slug}`);
+        navigate(`/axiomatic/${post.slug}`);
     };
 
     return (
         <>
             <Hero
-                title="ENGINEERING"
-                subtitle="APPLIED_SCIENCE // SYSTEMS_THEORY"
-                theme="engineering"
+                title="AXIOMATIC"
+                theme="default"
             />
             <section className="max-w-7xl mx-auto px-6 py-24 min-h-screen">
                 <SectionHeader
-                    title="CONSTRUCTS"
+                    title="FOUNDATIONS"
                     index={posts.length}
-                    sector="ENGINEERING"
-                    color="text-amber-400"
-                    borderColor="border-amber-900/30"
+                    sector="AXIOMATIC"
+                    color="text-cyber-white"
+                    borderColor="border-cyber-border"
                 />
 
                 <motion.div
-                    className="flex flex-wrap gap-px bg-amber-900/30 border border-amber-900/30"
+                    className="flex flex-wrap gap-px bg-cyber-border border border-cyber-border"
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, margin: "-50px" }}
@@ -86,4 +85,4 @@ const Engineering = () => {
     );
 };
 
-export default Engineering;
+export default Axiomatic;

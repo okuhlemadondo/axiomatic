@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Terminal } from 'lucide-react';
 import DecryptedText from './DecryptedText';
 import StaggeredText from './StaggeredText';
+import ShareButton from './ShareButton';
 
 const ReadingOverlay = ({ post, onClose, articleIndex }) => {
     const [contentVisible, setContentVisible] = useState(false);
@@ -167,9 +168,11 @@ const ReadingOverlay = ({ post, onClose, articleIndex }) => {
                                 className="mt-16 pt-8 border-t border-cyber-border flex justify-between items-center"
                             >
                                 <div className="flex gap-4">
-                                    <button className="px-8 py-3 border border-cyber-white hover:bg-cyber-white hover:text-cyber-black transition-colors font-mono text-sm uppercase tracking-widest">
-                                        SHARE
-                                    </button>
+                                    <ShareButton
+                                        url={`${window.location.origin}/${post.category.toLowerCase()}/${post.slug}`}
+                                        title={post.title}
+                                        description={post.excerpt}
+                                    />
                                 </div>
                                 <Terminal className="w-5 h-5 text-cyber-text" />
                             </motion.div>

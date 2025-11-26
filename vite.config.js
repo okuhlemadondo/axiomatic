@@ -23,4 +23,7 @@ export default defineConfig({
     },
     react()
   ],
+  server: {
+    historyApiFallback: true,
+  }
 })

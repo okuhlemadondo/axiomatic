@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Hero from '../components/Hero';
 import PostCard from '../components/PostCard';
@@ -8,20 +8,29 @@ import SectionHeader from '../components/SectionHeader';
 import { POSTS } from '../data/posts';
 
 const Science = () => {
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
+    const { slug } = useParams();
+    const navigate = useNavigate();
     const posts = POSTS.filter(p => p.category === 'SCIENCE');
 
     const selectedPost = useMemo(() => {
+        // First check for slug in URL params
+        if (slug) {
+            return posts.find(p => p.slug === slug);
+        }
+        // Fallback to query param for backward compatibility
         const postId = searchParams.get('post');
         return postId ? posts.find(p => p.id === parseInt(postId)) : null;
-    }, [searchParams, posts]);
+    }, [slug, searchParams, posts]);
 
     const handleClose = () => {
-        setSearchParams({});
+        // Navigate back to the category page
+        navigate('/science');
     };
 
     const handlePostClick = (post) => {
-        setSearchParams({ post: post.id });
+        // Navigate to the post's URL using slug
+        navigate(`/science/${post.slug}`);
     };
 
     return (

@@ -86,7 +86,7 @@ const Hero = ({ title = "AXIOMATIC", subtitle, theme = "default", startAnimation
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={startAnimation ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                    className={`text-4xl max-[530px]:text-3xl md:text-8xl font-display font-extrabold tracking-tighter mb-8 uppercase ${theme === 'science' ? 'text-cyan-400' : theme === 'engineering' ? 'text-amber-400' : theme === 'philosophy' ? 'text-violet-400' : theme === 'personal' ? 'text-red-500' : 'text-cyber-white'}`}
+                    className={`text-4xl max-[530px]:text-3xl md:text-6xl lg:text-7xl xl:text-8xl font-display font-extrabold tracking-tighter mb-8 uppercase ${theme === 'science' ? 'text-cyan-400' : theme === 'engineering' ? 'text-amber-400' : theme === 'philosophy' ? 'text-violet-400' : theme === 'personal' ? 'text-red-500' : 'text-cyber-white'}`}
                 >
                     {title}
                 </motion.h1>
