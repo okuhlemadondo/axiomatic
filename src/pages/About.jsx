@@ -10,10 +10,15 @@ import TextType from '../components/TextType';
 const About = () => {
     const [activeTooltip, setActiveTooltip] = useState(null);
     const [avatarScale, setAvatarScale] = useState({ mobile: 1.1, desktop: 0.7 });
+    const [isMobile, setIsMobile] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
             const width = window.innerWidth;
+            const mobileView = width < 768;
+            setIsMobile(mobileView);
+
             let mobile = 1.1;
             let desktop = 0.7;
 
@@ -32,42 +37,49 @@ const About = () => {
 
         handleResize();
         window.addEventListener('resize', handleResize);
+
+        // Trigger animation after mount
+        setMounted(true);
+
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
     return (
         <div className="h-screen bg-cyber-black text-cyber-text flex flex-col md:flex-row overflow-hidden pt-20">
-            {/* Mobile Layout: Stacked */}
-            {/* Top: 3D Avatar (35% height) */}
-            <div className="md:hidden w-full h-[35vh] relative border-b border-cyber-border/30 flex items-center justify-center bg-cyber-black/50 z-0 shrink-0">
-                <div className="absolute inset-0 bg-cyber-grid-bg opacity-20 pointer-events-none" />
-                <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
-                    <ambientLight intensity={0.6} />
-                    <spotLight position={[5, 5, 5]} angle={0.25} penumbra={1} intensity={1.5} />
-                    <pointLight position={[-5, -5, -5]} intensity={0.5} />
-                    <Avatar position={[0, 0.2, 0]} scale={avatarScale.mobile} />
-                    <OrbitControls enableZoom={false} enablePan={false} minPolarAngle={Math.PI / 2.2} maxPolarAngle={Math.PI / 1.8} />
-                    <Environment preset="city" />
-                </Canvas>
-            </div>
-
-            {/* Desktop Layout: Left Side (Full Height) */}
-            <div className="hidden md:flex md:w-1/2 h-full relative border-r border-cyber-border/30 items-center justify-center bg-cyber-black/50 z-0">
-                <div className="absolute inset-0 bg-cyber-grid-bg opacity-20 pointer-events-none" />
-                <Canvas camera={{ position: [0, 0, 4], fov: 35 }}>
-                    <ambientLight intensity={0.6} />
-                    <spotLight position={[5, 5, 5]} angle={0.25} penumbra={1} intensity={1.5} />
-                    <pointLight position={[-5, -5, -5]} intensity={0.5} />
-                    <Avatar position={[0, 0, 0]} scale={avatarScale.desktop} />
-                    <OrbitControls enableZoom={false} enablePan={false} minPolarAngle={Math.PI / 2.2} maxPolarAngle={Math.PI / 1.8} />
-                    <Environment preset="city" />
-                </Canvas>
-                <div className="absolute bottom-8 left-8 font-mono text-xs text-cyber-text/50 tracking-widest">
-                    [INTERACTIVE_MODEL_VIEWER]
-                    <br />
-                    DRAG_TO_ROTATE
+            {/* Mobile Layout: Stacked - Only render if mobile */}
+            {isMobile && (
+                <div className="w-full h-[35vh] relative border-b border-cyber-border/30 flex items-center justify-center bg-cyber-black/50 z-0 shrink-0">
+                    <div className="absolute inset-0 bg-cyber-grid-bg opacity-20 pointer-events-none" />
+                    <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+                        <ambientLight intensity={0.6} />
+                        <spotLight position={[5, 5, 5]} angle={0.25} penumbra={1} intensity={1.5} />
+                        <pointLight position={[-5, -5, -5]} intensity={0.5} />
+                        <Avatar position={[0, 0.2, 0]} scale={avatarScale.mobile} />
+                        <OrbitControls enableZoom={false} enablePan={false} minPolarAngle={Math.PI / 2.2} maxPolarAngle={Math.PI / 1.8} />
+                        <Environment preset="city" />
+                    </Canvas>
                 </div>
-            </div>
+            )}
+
+            {/* Desktop Layout: Left Side - Only render if desktop */}
+            {!isMobile && (
+                <div className="w-1/2 h-full relative border-r border-cyber-border/30 flex items-center justify-center bg-cyber-black/50 z-0">
+                    <div className="absolute inset-0 bg-cyber-grid-bg opacity-20 pointer-events-none" />
+                    <Canvas camera={{ position: [0, 0, 4], fov: 35 }}>
+                        <ambientLight intensity={0.6} />
+                        <spotLight position={[5, 5, 5]} angle={0.25} penumbra={1} intensity={1.5} />
+                        <pointLight position={[-5, -5, -5]} intensity={0.5} />
+                        <Avatar position={[0, 0, 0]} scale={avatarScale.desktop} />
+                        <OrbitControls enableZoom={false} enablePan={false} minPolarAngle={Math.PI / 2.2} maxPolarAngle={Math.PI / 1.8} />
+                        <Environment preset="city" />
+                    </Canvas>
+                    <div className="absolute bottom-8 left-8 font-mono text-xs text-cyber-text/50 tracking-widest">
+                        [INTERACTIVE_MODEL_VIEWER]
+                        <br />
+                        DRAG_TO_ROTATE
+                    </div>
+                </div>
+            )}
 
             {/* Right Side: Stats & Bio (Bottom on Mobile, Right on Desktop) */}
             <div className="w-full md:w-1/2 h-[65vh] md:h-full p-4 md:p-8 lg:p-12 flex flex-col justify-start md:justify-center relative overflow-y-auto z-10 bg-cyber-black md:bg-transparent backdrop-blur-none">
@@ -75,8 +87,8 @@ const About = () => {
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
+                    animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
                     className="h-full flex flex-col justify-start md:justify-center pt-4 md:pt-0 items-center md:items-start"
                 >
                     <div className="font-mono text-[10px] md:text-xs text-red-500 mb-2 md:mb-4 tracking-widest text-center md:text-left">
