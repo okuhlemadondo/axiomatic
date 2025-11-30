@@ -34,7 +34,7 @@ This separation of concerns ensures that domain logic (physics, geometry) is ind
 
 Each component of the Quartet is a **Kleisli morphism** $A \to M_\Sigma(B)$, where $M_\Sigma$ carries a row-polymorphic effect signature $\Sigma = \langle \text{State}, \text{Prob}, \text{Except}, \text{Trace} \rangle$.
 
-#### **3.1 TIDG: The Generative Effect**
+### **3.1 TIDG: The Generative Effect**
 ```
 TIDG: Spec → M_{Σ_g}(Program)
 where Σ_g = ⟨State(Knowledge), Prob(Prior), Except(TypeError), Trace(Proposals)⟩
@@ -43,7 +43,7 @@ TIDG returns a **probability distribution over well-typed programs**, constraine
 
 *Example*: `TIDG("cathode material")` yields a distribution over crystal structures, down-weighting those whose space groups previously led to spectral instabilities in UOA.
 
-#### **3.2 FSC: The Evaluation Effect**
+### **3.2 FSC: The Evaluation Effect**
 ```
 FSC: Program → M_{Σ_e}(Data)
 where Σ_e = ⟨State(Resources), Prob(Noise), Except(ConvergenceError), Trace(Metrics)⟩
@@ -52,7 +52,7 @@ FSC compiles and runs the program. The `Prob` effect models **aleatoric uncertai
 
 *Example*: `FSC(program)` returns an ensemble of trajectories, not a single run. The handler can retry with refined tolerances if variance is too high.
 
-#### **3.3 RC: The Perception Effect**
+### **3.3 RC: The Perception Effect**
 ```
 RC: Data → M_{Σ_p}(Feature)
 where Σ_p = ⟨State(Observables), Prob(Likelihood), Except(StructureMismatch), Trace(Invariants)⟩
@@ -61,7 +61,7 @@ RC lifts data into invariant features. The `Except` effect triggers if the data 
 
 *Example*: `RC(sim_data)` might return `StructureMismatch` if the data is not a smooth manifold, prompting TIDG to propose programs that generate cleaner topologies.
 
-#### **3.4 UOA: The Inference Effect**
+### **3.4 UOA: The Inference Effect**
 ```
 UOA: Feature → M_{Σ_i}(Law)
 where Σ_i = ⟨State(Operators), Prob(Posterior), Except(SpectralInstability), Trace(Eigenmodes)⟩

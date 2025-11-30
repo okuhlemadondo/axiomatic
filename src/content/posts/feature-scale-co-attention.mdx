@@ -35,7 +35,7 @@ For each feature $f \in \{1, ..., F\}$, we pre-compute (or learn via strided con
 
 We define a **Query** vector $q_t$ (the current hidden state of the forecaster). The FSCA operation computes the context vector $c_t$ in two distinct routing stages.
 
-#### Stage 1: Intra-Feature Scale Routing (The "Zoom")
+### Stage 1: Intra-Feature Scale Routing (The "Zoom")
 
 First, for every feature $f$, we must determine which time-scale is most relevant to the query $q_t$. We compute an attention score $\alpha_{f,k}$ over the scales $k$.
 
@@ -57,7 +57,7 @@ This is conceptually similar to how Mixture of Experts (MoE) routes tokens to di
 
 <YouTubeEmbed id="sYDlVVyJYn4" title="Mixture of Experts Deep Learning Explained" />
 
-#### Stage 2: Inter-Feature Co-Attention (The "Mix")
+### Stage 2: Inter-Feature Co-Attention (The "Mix")
 
 Now that we have the optimal scale representation $\hat{z}_f$ for each feature, we perform a second attention pass to determine which *features* are relevant.
 

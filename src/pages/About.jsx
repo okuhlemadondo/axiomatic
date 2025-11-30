@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
 import { motion } from 'framer-motion';
@@ -109,7 +109,9 @@ const About = () => {
                         <div className="grid grid-cols-2 gap-4 md:gap-6 border-t border-b border-cyber-border/30 py-4 md:py-6">
                             <div
                                 className="relative group cursor-help"
-                                onClick={() => setActiveTooltip(activeTooltip === 'age' ? null : 'age')}
+                                onClick={() => isMobile && setActiveTooltip(activeTooltip === 'age' ? null : 'age')}
+                                onMouseEnter={() => !isMobile && setActiveTooltip('age')}
+                                onMouseLeave={() => !isMobile && setActiveTooltip(null)}
                             >
                                 <div className="font-mono text-[10px] md:text-xs text-red-500 mb-1">AGE</div>
                                 <div className="text-base md:text-xl font-mono text-cyber-white border-b border-dashed border-cyber-text/30 inline-block hover:text-red-500 hover:border-red-500 transition-colors">
@@ -126,7 +128,7 @@ const About = () => {
                                 </div>
 
                                 {/* Humorous Tooltip */}
-                                {activeTooltip === 'age' && createPortal(
+                                {activeTooltip === 'age' && (
                                     <>
                                         <div className={`
                                             fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] z-[9999]
@@ -153,21 +155,22 @@ const About = () => {
                                             </div>
                                         </div>
                                         {/* Mobile Backdrop */}
-                                        <div className="fixed inset-0 bg-black/60 z-[9990]" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />
-                                    </>,
-                                    document.body
+                                        {isMobile && <div className="fixed inset-0 bg-black/60 z-[9990] md:hidden" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />}
+                                    </>
                                 )}
                             </div>
 
                             <div
                                 className="relative group cursor-help"
-                                onClick={() => setActiveTooltip(activeTooltip === 'class' ? null : 'class')}
+                                onClick={() => isMobile && setActiveTooltip(activeTooltip === 'class' ? null : 'class')}
+                                onMouseEnter={() => !isMobile && setActiveTooltip('class')}
+                                onMouseLeave={() => !isMobile && setActiveTooltip(null)}
                             >
                                 <div className="font-mono text-[10px] md:text-xs text-red-500 mb-1">CLASS</div>
                                 <div className="text-base md:text-lg lg:text-xl font-mono text-cyber-white border-b border-dashed border-cyber-text/30 inline-block hover:text-red-500 hover:border-red-500 transition-colors">Computational Scientist</div>
 
                                 {/* Definition Tooltip */}
-                                {activeTooltip === 'class' && createPortal(
+                                {activeTooltip === 'class' && (
                                     <>
                                         <div className={`
                                             fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] z-[9999]
@@ -185,21 +188,22 @@ const About = () => {
                                             </div>
                                         </div>
                                         {/* Mobile Backdrop */}
-                                        <div className="fixed inset-0 bg-black/60 z-[9990]" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />
-                                    </>,
-                                    document.body
+                                        {isMobile && <div className="fixed inset-0 bg-black/60 z-[9990] md:hidden" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />}
+                                    </>
                                 )}
                             </div>
 
                             <div
                                 className="relative group cursor-help"
-                                onClick={() => setActiveTooltip(activeTooltip === 'species' ? null : 'species')}
+                                onClick={() => isMobile && setActiveTooltip(activeTooltip === 'species' ? null : 'species')}
+                                onMouseEnter={() => !isMobile && setActiveTooltip('species')}
+                                onMouseLeave={() => !isMobile && setActiveTooltip(null)}
                             >
                                 <div className="font-mono text-[10px] md:text-xs text-red-500 mb-1">SPECIES</div>
                                 <div className="text-base md:text-xl font-mono text-cyber-white border-b border-dashed border-cyber-text/30 inline-block hover:text-red-500 hover:border-red-500 transition-colors">Homo Sapiens</div>
 
                                 {/* Biological Classification Tooltip */}
-                                {activeTooltip === 'species' && createPortal(
+                                {activeTooltip === 'species' && (
                                     <>
                                         <div className={`
                                             fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] z-[9999]
@@ -223,21 +227,22 @@ const About = () => {
                                             </div>
                                         </div>
                                         {/* Mobile Backdrop */}
-                                        <div className="fixed inset-0 bg-black/60 z-[9990]" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />
-                                    </>,
-                                    document.body
+                                        {isMobile && <div className="fixed inset-0 bg-black/60 z-[9990] md:hidden" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />}
+                                    </>
                                 )}
                             </div>
 
                             <div
                                 className="relative group cursor-help"
-                                onClick={() => setActiveTooltip(activeTooltip === 'origin' ? null : 'origin')}
+                                onClick={() => isMobile && setActiveTooltip(activeTooltip === 'origin' ? null : 'origin')}
+                                onMouseEnter={() => !isMobile && setActiveTooltip('origin')}
+                                onMouseLeave={() => !isMobile && setActiveTooltip(null)}
                             >
                                 <div className="font-mono text-[10px] md:text-xs text-red-500 mb-1">ORIGIN</div>
                                 <div className="text-base md:text-xl font-mono text-cyber-white border-b border-dashed border-cyber-text/30 inline-block hover:text-red-500 hover:border-red-500 transition-colors">South Africa</div>
 
                                 {/* Cosmic Address Tooltip */}
-                                {activeTooltip === 'origin' && createPortal(
+                                {activeTooltip === 'origin' && (
                                     <>
                                         <div className={`
                                             fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] z-[9999]
@@ -260,9 +265,8 @@ const About = () => {
                                             </div>
                                         </div>
                                         {/* Mobile Backdrop */}
-                                        <div className="fixed inset-0 bg-black/60 z-[9990]" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />
-                                    </>,
-                                    document.body
+                                        {isMobile && <div className="fixed inset-0 bg-black/60 z-[9990] md:hidden" onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} />}
+                                    </>
                                 )}
                             </div>
                         </div>

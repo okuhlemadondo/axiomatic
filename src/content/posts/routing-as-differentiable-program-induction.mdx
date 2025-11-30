@@ -13,7 +13,7 @@ We force the model to simulate algorithms using a mechanism designed for fuzzy r
 
 ---
 
-## The Problem: The "Hammer" of Attention
+### The Problem: The "Hammer" of Attention
 
 Currently, we treat Self-Attention as a universal solvent.
 *   **Task:** "Find the noun." -> **Mechanism:** Attention.
@@ -26,7 +26,7 @@ To "sort" numbers, a Transformer must learn a complex, high-dimensional attentio
 
 ---
 
-## The Formalism: The Dynamic Operator
+### The Formalism: The Dynamic Operator
 
 Let $\mathcal{X} \in \mathbb{R}^{T \times D}$ be the input sequence.
 Let $\mathbb{P} = \{P_1, P_2, \dots, P_K\}$ be a set of **Differentiable Primitives**.
@@ -54,7 +54,7 @@ In a **Hard Routing** limit (which we aim for via annealing or Gumbel-Softmax), 
 
 ---
 
-## The Algorithm: Differentiable Instruction Set
+### The Algorithm: Differentiable Instruction Set
 
 The implementation requires defining the primitives as `nn.Module` blocks and routing through them. A crucial innovation here is that different primitives have different computational complexities.
 
@@ -141,7 +141,7 @@ class RDPIBlock(nn.Module):
 
 ---
 
-## Challenges to Address
+### Challenges to Address
 
 1.  **Differentiable Primitives**: Some desired primitives (like strict sorting or stack manipulation) are non-differentiable. We must use relaxations (e.g., SoftSort) or reinforcement learning (REINFORCE) to train the router through discrete operations.
 2.  **Primitive Collapse**: The model might find that "Attention" is generally "good enough" and ignore the other primitives, collapsing back into a standard Transformer. We need **entropy regularization** on the router to force it to explore the toolset.
@@ -149,7 +149,7 @@ class RDPIBlock(nn.Module):
 
 ---
 
-## Conclusion
+### Conclusion
 
 RDPI envisions a future where Neural Networks are not just static graphs of matrix multiplications, but **Dynamic Interpreters** that write their own execution traces on the fly. It moves us from "Artificial Intuition" (pattern matching) toward "Artificial Reasoning" (algorithmic execution).
 

@@ -13,7 +13,7 @@ However, this "dense attention" assumption is hitting diminishing returns. As co
 
 ---
 
-## The Problem: The "Context Soup"
+### The Problem: The "Context Soup"
 
 In a standard Transformer, we concatenate all inputs—system prompts, user queries, retrieved documents, tool outputs, and chat history—into a single sequence $X$. The Self-Attention mechanism computes a query $Q$ and attends to $X$ indiscriminately.
 
@@ -26,7 +26,7 @@ This creates three structural failures:
 
 ---
 
-## The Formalism: Two-Stage Differentiable Selection
+### The Formalism: Two-Stage Differentiable Selection
 
 Let us assume the model has access to $M$ distinct information sources $\mathcal{S} = \{S^{(1)}, S^{(2)}, \dots, S^{(M)}\}$.
 *   $S^{(1)}$: The local context (current conversation).
@@ -65,7 +65,7 @@ This reduces the complexity from $O(T_{total}^2)$ to $O(T_{source}^2)$, where $T
 
 ---
 
-## Implementation Strategy & Algorithm
+### Implementation Strategy & Algorithm
 
 To make this efficient, we cannot physically move data around in GPU memory at every step. The implementation requires **Block-Sparse Kernels** (similar to those used in Triton or specialized MoE implementations).
 
@@ -150,7 +150,7 @@ class HierarchicalSourceAttention(nn.Module):
 
 ---
 
-## Why This Matters
+### Why This Matters
 
 HSA represents a shift from **Passive Context** to **Active Inquiry**.
 
